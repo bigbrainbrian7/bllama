@@ -52,8 +52,7 @@ bool check_logit(int pos, const char* name, float actual, float expected) {
 
 int main(int argc, char** argv) {
     const char* checkpoint = argc > 1 ? argv[1] : "./models/stories15M.bin";
-    Model model;
-    build_model(checkpoint, model);
+    Model model(checkpoint);
     RunState state(model.config);
 
     bool ok = true;

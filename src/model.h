@@ -87,9 +87,9 @@ struct Model{
     int fd; //file descriptor for mmaping
     float *data; //memory mapped data pointer
     size_t size; //file size of model checkpoint
-};
 
-void build_model(const char *checkpoint, Model& model);
+    explicit Model(const char*checkpoint);
+};
 
 void rmsnorm(std::vector<float>& o, const std::vector<float>& x, std::span<const float> weights);
 void softmax(std::span<float> x);

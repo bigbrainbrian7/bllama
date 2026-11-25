@@ -116,7 +116,7 @@ static void memory_map_weights(Model& model, bool shared_weights) {
 }
 
 //will initially be string literal. later will select
-void build_model(const char *checkpoint, Model& model) {
+Model::Model(const char *checkpoint) {
     FILE *file = std::fopen(checkpoint, "rb");
     if (!file) {
         fprintf(stderr, "Couldn't open file %s\n", checkpoint);
@@ -126,32 +126,32 @@ void build_model(const char *checkpoint, Model& model) {
 
     //reads directly from model metadata binary data into config object
     // since we testing out with llama.c model, we will have to stay consistent here
-    if(fread(&model.config, sizeof(Config), 1, file)!=1) {
+    if(fread(&this->config, sizeof(Config), 1, file)!=1) {
         fprintf(stderr, "Could not load into config");
         std::exit(EXIT_FAILURE);
     }
 
     // llama2.c encodes an unshared classifier (wcls != embedding table) as a negative vocab_size.
-    bool shared_weights = model.config.vocab_size > 0;
-    model.config.vocab_size = abs(model.config.vocab_size);
+    bool shared_weights = this->config.vocab_size > 0;
+    this->config.vocab_size = abs(this->config.vocab_size);
 
     std::fseek(file, 0, SEEK_END);
-    model.size = std::ftell(file);
+    this->size = std::ftell(file);
     std::fclose(file);
 
-    model.fd = open(checkpoint, O_RDONLY);
-    if (model.fd == -1) {
+    this->fd = open(checkpoint, O_RDONLY);
+    if (this->fd == -1) {
         fprintf(stderr, "open failed for %s\n", checkpoint);
         std::exit(EXIT_FAILURE);
     }
 
-    model.data = static_cast<float *>(mmap(nullptr, model.size, PROT_READ, MAP_PRIVATE, model.fd, 0));
-    if (model.data == MAP_FAILED) {
+    this->data = static_cast<float *>(mmap(nullptr, this->size, PROT_READ, MAP_PRIVATE, this->fd, 0));
+    if (this->data == MAP_FAILED) {
         fprintf(stderr, "mmap failed for %s\n", checkpoint);
         std::exit(EXIT_FAILURE);
     }
 
-    memory_map_weights(model, shared_weights);
+    memory_map_weights(*this, shared_weights);
 }
 
 //neural network blocks
